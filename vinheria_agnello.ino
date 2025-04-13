@@ -3,7 +3,7 @@
 
 LiquidCrystal_I2C lcd(0x27, 16, 2); // Endereço I2C do LCD, 16 colunas e 2 linhas
 
-const int pinoLDR = A0; // Pino analógico para o LDR
+const int pinoLDR = A3; // Pino analógico para o LDR
 const int ledVerde = 11; // Pino digital para o LED verde
 const int ledAmarelo = 10; // Pino digital para o LED amarelo
 const int ledVermelho = 9; // Pino digital para o LED vermelho
@@ -45,6 +45,25 @@ void loop() {
     lcd.print("Luz: "); // Exibe a mensagem "Luz: "
     lcd.print(porcentagemLuz); // Exibe a porcentagem de luz
     lcd.print("%  "); // Exibe o símbolo de porcentagem
+
+    if (porcentagemLuz <= 40) {
+        digitalWrite(ledVerde, HIGH); // Liga o LED verde
+        digitalWrite(ledAmarelo, LOW); // Desliga o LED amarelo
+        digitalWrite(ledVermelho, LOW); // Desliga o LED vermelho
+        noTone(buzzer); // Desliga o som do buzzer
+    } else if (porcentagemLuz > 40 && porcentagemLuz <= 70) {
+        digitalWrite(ledVerde, LOW); // Desliga o LED verde
+        digitalWrite(ledAmarelo, HIGH); // Liga o LED amarelo
+        digitalWrite(ledVermelho, LOW); // Desliga o LED vermelho
+        noTone(buzzer); // Desliga o som do buzzer
+    } else {
+        digitalWrite(ledVerde, LOW); // Desliga o LED verde
+        digitalWrite(ledAmarelo, LOW); // Desliga o LED amarelo
+        digitalWrite(ledVermelho, HIGH); // Liga o LED vermelho
+        tone(buzzer, 1000); // Liga o som do buzzer
+        delay(3000); // Aguarda 3000ms
+        noTone(buzzer); // Desliga o som do buzzer
+    }
 
     delay(1000); // Aguarda 1 segundo
 }
