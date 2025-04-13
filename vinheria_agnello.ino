@@ -30,5 +30,21 @@ void setup() {
 }
 
 void loop() {
-    //Loop principal do sistema
+    int soma = 0; // Variável para armazenar a soma dos valores lidos
+
+    for (int i = 0; i < 10; i++) {
+        soma += analogRead(pinoLDR); // Lê o valor do LDR e adiciona à soma
+        delay(100); // Aguarda 100ms entre as leituras
+    }
+
+    int leituraMedia = soma / 10; // Calcula a média das leituras
+
+    int porcentagemLuz = map(leituraMedia, 0, 1023, 0, 100); // Mapeia o valor lido para porcentagem de luz
+
+    lcd.setCursor(0, 0); // Define o cursor na primeira linha
+    lcd.print("Luz: "); // Exibe a mensagem "Luz: "
+    lcd.print(porcentagemLuz); // Exibe a porcentagem de luz
+    lcd.print("%  "); // Exibe o símbolo de porcentagem
+
+    delay(1000); // Aguarda 1 segundo
 }
