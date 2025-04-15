@@ -4,7 +4,7 @@
 ![Plataforma](https://img.shields.io/badge/Plataforma-Arduino%20UNO-blue)
 ![Linguagem](https://img.shields.io/badge/Linguagem-C/C++-lightgrey)
 ![Licença](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow)
-gi
+
 Projeto desenvolvido como parte do desafio acadêmico proposto pela FIAP, com base no cenário fictício da empresa **Vinheria Agnello**. Este sistema embarcado tem como objetivo monitorar a luminosidade do ambiente, garantindo que os vinhos sejam armazenados sob condições ideais de conservação.
 
 O projeto utiliza um sensor LDR para detectar a luz ambiente, realiza calibração dinâmica, apresenta o status via display LCD e aciona alertas visuais (LEDs) e sonoros (buzzer) conforme o nível de luminosidade.
