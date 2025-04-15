@@ -1,175 +1,182 @@
-#include <LiquidCrystal.h>
-#include <string.h>
+#include <LiquidCrystal.h> // Biblioteca para controle do display LCD
+#include <string.h>        // Biblioteca padrão para manipulação de strings (strlen)
 
-LiquidCrystal lcd(12,11,10,9,8,7); //Declara os pinos usados no header LiquidCrystal
+// Inicializa o display LCD nos pinos (RS, E, D4, D5, D6, D7)
+LiquidCrystal lcd(12, 11, 10, 9, 8, 7);
 
-//DECLARAÇÃO DOS PINOS COMO VÁRIAVEIS
-/*Uso de const short tipo - Como são váriaveis que não vão mudar seu valor
-se usa constantes, também, como são números pequenos, se usa short para economizar memória*/
-const short int LDR = A0;
-const short int ledRed = 6;
-const short int ledYellow = 5;
-const short int ledGreen = 4;
-const short int buzzer = 3;
-const short int button = 2;
-int luzMinima = 1023,luzMaxima = 0;
-const int precisao = 100; // milisegundos
+// Pino analógico conectado ao sensor LDR (fotoresistor)
+const short int pinoLDR = A0;
+
+// LEDs de sinalização (verde = ideal, amarelo = alerta, vermelho = crítico)
+const short int ledVermelho = 6;
+const short int ledAmarelo  = 5;
+const short int ledVerde    = 4;
+
+// Buzzer que emite som de alerta
+const short int pinoBuzzer = 3;
+
+// Botão físico usado para calibração dos níveis de luz
+const short int botaoCalibrar = 2;
+
+// Limites calibrados durante o setup
+int limiteLuzMinima = 1023;
+int limiteLuzMaxima = 0;
+
+// Tempo de espera entre leituras (em milissegundos)
+const int tempoPrecisao = 100;
 
 void setup() {
-  //Setup dos Pinos
-  pinMode(LDR, INPUT);
-  pinMode(ledRed, OUTPUT);
-  pinMode(ledYellow, OUTPUT);
-  pinMode(ledGreen, OUTPUT);
-  pinMode(buzzer, OUTPUT);
-  pinMode(button, INPUT_PULLUP);
-  lcd.begin(16,2);
-  
-  
-  //Animação de entrada
+  // Configura os pinos como entrada ou saída
+  pinMode(pinoLDR, INPUT);
+  pinMode(ledVermelho, OUTPUT);
+  pinMode(ledAmarelo, OUTPUT);
+  pinMode(ledVerde, OUTPUT);
+  pinMode(pinoBuzzer, OUTPUT);
+  pinMode(botaoCalibrar, INPUT_PULLUP); // Usa resistor interno de pull-up
+
+  // Inicializa o display LCD com 16 colunas e 2 linhas
+  lcd.begin(16, 2);
+
+  // Mostra animação de boas-vindas com o nome do grupo
   char logo[] = "----Stratfy-----------------------";
-  animacaoPrint(logo,200);
+  animacaoPrint(logo, 200);
   delay(3000);
-  for(int i = 16; i>0;i--){
-    lcd.setCursor(i,0);
+
+  // Limpa a tela aos poucos (efeito visual de saída)
+  for (int i = 16; i > 0; i--) {
+    lcd.setCursor(i, 0);
     lcd.print(" ");
-    lcd.setCursor(i,1);
+    lcd.setCursor(i, 1);
     lcd.print(" ");
     delay(50);
   }
-  
-  //Chama a função que faz o setup do LDR
+
+  // Inicia processo de calibração do LDR
   setupLDR();
   delay(3000);
-
 }
 
 void loop() {
-  float leituraLDR, somaMedia = 0, leituraLDRporCem;
-  
-  //Faz a média das leituras do LDR
-  for(int i = 0; i < 10; i++){
-    somaMedia += analogRead(LDR);
-    delay(precisao);
+  float somaLeiturasLDR = 0;
+  float mediaLeituraLDR = 0;
+  float percentualLuz   = 0;
+
+  // Faz 10 leituras do LDR para suavizar ruídos (média)
+  for (int i = 0; i < 10; i++) {
+    somaLeiturasLDR += analogRead(pinoLDR);
+    delay(tempoPrecisao);
   }
-  leituraLDR = somaMedia/10;
 
-  //Transforma a média em porcentagem
-  leituraLDRporCem = mapParseFloat(leituraLDR,luzMinima,luzMaxima,0,100);
+  // Calcula a média das leituras
+  mediaLeituraLDR = somaLeiturasLDR / 10;
 
+  // Converte a leitura para porcentagem com base nos limites calibrados
+  percentualLuz = mapParseFloat(mediaLeituraLDR, limiteLuzMinima, limiteLuzMaxima, 0, 100);
 
-  //Display da porcentagem de luz
   lcd.clear();
   lcd.print("Luz Atual(LDR)");
-  lcd.setCursor(0,1);
-  lcd.print(leituraLDRporCem,2);
+  lcd.setCursor(0, 1);
+  lcd.print(percentualLuz, 2); // Mostra duas casas decimais
   lcd.print('%');
 
-
-   if (leituraLDRporCem <= 40) {
-    // Luz adequada: LED verde aceso
-    digitalWrite(ledGreen, HIGH);
-    digitalWrite(ledYellow, LOW);
-    digitalWrite(ledRed, LOW);
-    noTone(buzzer); // Buzzer desligado
-  } else if (leituraLDRporCem <= 70) {
-    // Luz em nível de alerta: LED amarelo aceso
-    digitalWrite(ledGreen, LOW);
-    digitalWrite(ledYellow, HIGH);
-    digitalWrite(ledRed, LOW);
-    noTone(buzzer); // Buzzer desligado
+  if (percentualLuz <= 40) {
+    // Nível ideal de luz para vinhos: LED verde ligado
+    digitalWrite(ledVerde, HIGH);
+    digitalWrite(ledAmarelo, LOW);
+    digitalWrite(ledVermelho, LOW);
+    noTone(pinoBuzzer);
+  } else if (percentualLuz <= 70) {
+    // Nível intermediário: alerta amarelo
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledAmarelo, HIGH);
+    digitalWrite(ledVermelho, LOW);
+    noTone(pinoBuzzer);
   } else {
-    // Luz excessiva: LED vermelho aceso + buzzer por 3s
-    digitalWrite(ledGreen, LOW);
-    digitalWrite(ledYellow, LOW);
-    digitalWrite(ledRed, HIGH);
-    tone(buzzer, 1000); // Buzzer toca em 1kHz
-    delay(3000);        // Dura 3 segundos
-    noTone(buzzer);     // Desliga o buzzer após o tempo
+    // Luz excessiva: alerta vermelho + buzzer por 3 segundos
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledAmarelo, LOW);
+    digitalWrite(ledVermelho, HIGH);
+    tone(pinoBuzzer, 1000); // Emite som em 1000 Hz
+    delay(3000);
+    noTone(pinoBuzzer);
   }
-  
 }
 
-
-//Funções
-
-//Função Map só que com números de ponto flutuante
-float mapParseFloat(float var,float inMin, float inMax, float outMin, float outMax){
-  return(var-inMin)*(outMax-outMin)/(inMax-inMin)+outMin;
+// Função personalizada para mapear valores float (equivalente ao map() do Arduino)
+float mapParseFloat(float valor, float inMin, float inMax, float outMin, float outMax) {
+  return (valor - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
 }
 
-/*Função que faz a calibragem, retorna o a média de 10 leituras do LDR, feita para evitar a repetição
-desse bloco de código na função setup*/
-int calibragem(){
-    int luz;
-    do{
-    int somaMedia = 0;
-    for(int i = 0; i < 10; i++){
-      somaMedia += analogRead(LDR);
-      delay(precisao);
-      }
-    luz = somaMedia/10;
-  }while(digitalRead(button) == LOW);
-  return luz;
+// Realiza 10 leituras do LDR e retorna a média, aguardando o botão ser solto
+int calibrarLDR() {
+  int media = 0;
+
+  do {
+    int soma = 0;
+
+    for (int i = 0; i < 10; i++) {
+      soma += analogRead(pinoLDR);
+      delay(tempoPrecisao);
+    }
+
+    media = soma / 10;
+  } while (digitalRead(botaoCalibrar) == LOW); // Espera soltar o botão
+
+  return media;
 }
 
-
-//Função com a parte visual e setup dos valores minimos e máximos do LDR
+// Processo de calibração do sensor LDR, guiado por mensagens no display
 void setupLDR() {
   lcd.clear();
   lcd.setCursor(0, 0);
+
+  // Mensagem de início do setup
   char mensagem[] = "SETUP Sensor LDR";
   animacaoPrint(mensagem, 150);
-  lcd.setCursor(0,1);
+  lcd.setCursor(0, 1);
   lcd.print("Pressione");
-  
-  
-  while(digitalRead(button) == HIGH);
+
+  // Espera botão ser pressionado e solto para continuar
+  while (digitalRead(botaoCalibrar) == HIGH);
   delay(100);
-  while(digitalRead(button) == LOW);
-  
+  while (digitalRead(botaoCalibrar) == LOW);
 
-  // Etapa: instrução para luz mínima
-  char mensagem2[] = "Luz Min. Pressione";
-  animacaoPrint(mensagem2, 100);
-  
-  // Espera o botão ser pressionado
-  while (digitalRead(button) == HIGH);
-  delay(100); // debounce
-  while (digitalRead(button) == LOW);  // espera soltar
+  // Mensagem para definir luz mínima
+  char mensagemMin[] = "Luz Min. Pressione";
+  animacaoPrint(mensagemMin, 100);
 
-  luzMinima = calibragem();
+  // Espera botão e realiza calibração mínima
+  while (digitalRead(botaoCalibrar) == HIGH);
+  delay(100);
+  while (digitalRead(botaoCalibrar) == LOW);
+  limiteLuzMinima = calibrarLDR();
 
-  // Etapa: instrução para luz máxima
-  char mensagem3[] = "Luz Max. Pressione";
-  animacaoPrint(mensagem3, 100);
+  // Mensagem para definir luz máxima
+  char mensagemMax[] = "Luz Max. Pressione";
+  animacaoPrint(mensagemMax, 100);
 
-  while (digitalRead(button) == HIGH);
-  delay(100); // debounce
-  while (digitalRead(button) == LOW);  // espera soltar
+  while (digitalRead(botaoCalibrar) == HIGH);
+  delay(100);
+  while (digitalRead(botaoCalibrar) == LOW);
+  limiteLuzMaxima = calibrarLDR();
 
-  luzMaxima = calibragem();
-
+  // Confirmação no display
   lcd.clear();
   lcd.print("Calibragem OK!");
   delay(1500);
 }
 
-
-//Função que imprime as mensagens de forma mais bonita, imprime letra a letra e quebra linha
-//parâmetros formais: mensagem e tempo em milisegundos do delay entre as letras
-void animacaoPrint(char mensagem[],int tempo){
+// Função que imprime texto no LCD com efeito de digitação
+// Automaticamente quebra linha após 15 caracteres
+void animacaoPrint(char mensagem[], int tempo) {
   lcd.clear();
-  for(int i = 0; i< strlen(mensagem);i++){
+
+  for (int i = 0; i < strlen(mensagem); i++) {
     lcd.print(mensagem[i]);
     delay(tempo);
-    if(i>14)lcd.setCursor(i-15,1);
+
+    if (i > 14) {
+      lcd.setCursor(i - 15, 1);
+    }
   }
 }
-
-
-
-
-
-
-
