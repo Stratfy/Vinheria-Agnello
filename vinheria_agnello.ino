@@ -35,57 +35,57 @@ byte customChars[][8]={{
   B10000,
   B10000
 },{//sol 1 #2
-  B00001,
-  B00010,
-  B01100,
-  B01000,
-  B01000,
-  B01100,
-  B00010,
-  B00001
+  B00000,
+  B00011,
+  B01111,
+  B01111,
+  B01111,
+  B01111,
+  B00011,
+  B00000
 },{//sol 1 #3
-  B10000,
-  B01000,
-  B00110,
-  B00010,
-  B00010,
-  B00110,
-  B01000,
-  B10000
+  B00000,
+  B11000,
+  B11110,
+  B11110,
+  B11110,
+  B11110,
+  B11000,
+  B00000
 },{//sol 2 #4
-  B00001,
+  B00000,
   B00011,
-  B01111,
-  B01111,
-  B01111,
-  B01111,
+  B01100,
+  B01000,
+  B01000,
+  B01100,
   B00011,
-  B00001
+  B00000
 },{//sol 2 #5
-  B10000,
+  B00000,
   B11000,
-  B11110,
-  B11110,
-  B11110,
-  B11110,
+  B00110,
+  B00010,
+  B00010,
+  B00110,
   B11000,
-  B10000
+  B00000
 },{//sol 3 #6
   B00101,
   B10011,
-  B01111,
-  B11111,
-  B11111,
-  B01111,
+  B01100,
+  B01000,
+  B01000,
+  B01100,
   B10011,
   B00101
 },{//sol3 #7
   B10100,
   B11001,
-  B11110,
-  B11111,
-  B11111,
-  B11110,
+  B00110,
+  B00010,
+  B00010,
+  B00110,
   B11001,
   B10100
 }};
@@ -259,6 +259,9 @@ void animacaoPrint(char mensagem[],int tempo){
   }
 }
 
+/*Função que cria a barra e faz a animação dela em um espaço usando operadores
+bit a bit, ou seja portabilizada e com o menor uso de memória*/
+
 void barra(int cursor){
   lcd.write(byte(0));
   delay(velocidade);
@@ -274,6 +277,8 @@ void barra(int cursor){
   for(int j = 0; j<8; j++)customChars[1][j] = B10000;
 }
 
+/*função que junta e justifica a animação de transição de abas, repete a 
+função barra por toda a tela*/
 void transicao(void){
    for(int i = 0; i<16; i++){
     lcd.setCursor(i-1,0);
@@ -284,6 +289,8 @@ void transicao(void){
   }
   lcd.clear();
 }
+
+
 
 
 
